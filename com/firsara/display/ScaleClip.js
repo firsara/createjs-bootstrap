@@ -68,7 +68,7 @@ com.firsara.display.ScaleClip = (function(){
       var y = p2.y - p1.y;
 
       return Math.sqrt((x * x) + (y * y));
-    }
+    };
 
     var _update = function(event){
       if (self.lock) return;
