@@ -70,9 +70,9 @@ com.firsara.display.MoveClip = (function(){
       var average = {x: 0, y: 0};
 
       if (self.stack && self.stack.length) {
-        for (var i = 0, _len = self.stack.length; i < _len; i++) {
-          average.x += self.stack[i].x;
-          average.y += self.stack[i].y;
+        for (var i = 1, _len = self.stack.length; i < _len; i++) {
+          average.x += (self.stack[i].x - self.stack[i-1].x);
+          average.y += (self.stack[i].y - self.stack[i-1].y);
         }
 
         average.x /= self.stack.length;
