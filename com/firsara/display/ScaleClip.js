@@ -63,6 +63,13 @@ com.firsara.display.ScaleClip = (function(){
       self.dispatchEvent(SCALE_COMPLETE);
     };
 
+    var _getDistance = function(p1, p2) {
+      var x = p2.x - p1.x;
+      var y = p2.y - p1.y;
+
+      return Math.sqrt((x * x) + (y * y));
+    }
+
     var _update = function(event){
       if (self.lock) return;
 
@@ -76,16 +83,10 @@ com.firsara.display.ScaleClip = (function(){
           }
         }
 
-        var point1 = points[0].old;
-        var point2 = points[1].old;
-        var distance1 = Math.abs(point2.x - point1.x) + Math.abs(point2.y - point1.y);
-
-        var point1 = points[0].current;
-        var point2 = points[1].current;
-        var distance2 = Math.abs(point2.x - point1.x) + Math.abs(point2.y - point1.y);
+        var scale = _getDistance(points[0].current, points[1].current) / _getDistance(points[0].old, points[1].old);
 
         // NOTE: make scaling proportional to element size
-        self.scaleX += ((distance2 - distance1) * 0.001);
+        self.scaleX += (scale - 1);
         self.scaleY = self.scaleX;
 
         _holdBorders();
