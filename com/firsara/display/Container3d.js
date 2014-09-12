@@ -1,5 +1,7 @@
 setPackage('com.firsara.display');
 
+// TODO: inherit draw from createjs.Container, remove update-function (maybe call super.draw via Parent.draw(self))
+
 com.firsara.display.Container3d = (function(){
   var Parent = createjs.Container;
 
