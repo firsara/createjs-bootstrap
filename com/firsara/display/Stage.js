@@ -7,7 +7,7 @@
 setPackage('com.firsara.display');
 
 com.firsara.display.Stage = (function(){
-  var Parent = null;
+  var Parent = createjs.Stage;
 
   // Public Functions
   var Public = {
@@ -15,23 +15,22 @@ com.firsara.display.Stage = (function(){
       fps: 50,
       mouseover: true,
       mouseoverTreshold: 10,
-      touch: true,
-      canvas: 'canvas'
+      touch: true
     },
 
     stage: null
   };
 
-  var Stage = function(){
+  var Stage = function(canvas){
     // instance
     var self = this;
 
     // Constructor
     var Init = function(){
-      self.stage = new createjs.Stage(self.config.canvas);
+      if (Parent) Parent.call(self, canvas);
 
-      if (self.config.touch) createjs.Touch.enable(self.stage);
-      if (self.config.mouseover) self.stage.enableMouseOver(self.config.mouseoverTreshold);
+      if (self.config.touch) createjs.Touch.enable(self);
+      if (self.config.mouseover) self.enableMouseOver(self.config.mouseoverTreshold);
       //self.stage.mouseMoveOutside = true; // keep tracking the mouse even when it leaves the canvas
 
       createjs.Ticker.setFPS(self.config.fps);
@@ -43,15 +42,14 @@ com.firsara.display.Stage = (function(){
 
     // private functions
     var resize = function(){
-      self.stage.canvas.width = window.innerWidth;
-      self.stage.canvas.height = window.innerHeight;
+      self.canvas.width = window.innerWidth;
+      self.canvas.height = window.innerHeight;
     };
 
     var update = function(e){
-      self.stage.update(e);
+      self.update(e);
     };
 
-    if (Parent) Parent.call(this);
     Init();
   };
 
