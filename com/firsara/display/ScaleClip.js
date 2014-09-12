@@ -1,3 +1,6 @@
+// TODO: create SwipeClip.
+// TODO: rename TransformClip to Transformable
+// TODO: create SlideClip
 // TODO: adjust borders to take rotation and scaling in account
 setPackage('com.firsara.display');
 
@@ -52,10 +55,7 @@ com.firsara.display.ScaleClip = (function(){
 
     var _startTransform = function(event){
       if (self.activeFingers > 1) {
-        if (_tween) {
-          _tween.kill();
-          _tween = null;
-        }
+        _stopTween();
       }
     };
 
@@ -74,6 +74,8 @@ com.firsara.display.ScaleClip = (function(){
       if (self.lock) return;
 
       if (self.activeFingers > 1) {
+        _stopTween();
+
         var points = [];
 
         for (var k in self.fingers) {

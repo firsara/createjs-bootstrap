@@ -52,10 +52,7 @@ com.firsara.display.RotateClip = (function(){
 
     var _startTransform = function(event){
       if (self.activeFingers > 1) {
-        if (_tween) {
-          _tween.kill();
-          _tween = null;
-        }
+        _stopTween();
       }
     };
 
@@ -67,6 +64,8 @@ com.firsara.display.RotateClip = (function(){
       if (self.lock) return;
 
       if (self.activeFingers > 1) {
+        _stopTween();
+
         var points = [];
 
         for (var k in self.fingers) {
