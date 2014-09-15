@@ -12,10 +12,11 @@ com.firsara.display.Stage = (function(){
   // Public Functions
   var Public = {
     config: {
-      fps: 50,
+      fps: 60,
       mouseover: true,
       mouseoverTreshold: 10,
-      touch: true
+      touch: true,
+      timingMode: createjs.Ticker.RAF_SYNCHED
     },
 
     stage: null
@@ -33,6 +34,7 @@ com.firsara.display.Stage = (function(){
       if (self.config.mouseover) self.enableMouseOver(self.config.mouseoverTreshold);
       //self.stage.mouseMoveOutside = true; // keep tracking the mouse even when it leaves the canvas
 
+      createjs.Ticker.timingMode = self.config.timingMode;
       createjs.Ticker.setFPS(self.config.fps);
       createjs.Ticker.addEventListener('tick', update);
 
