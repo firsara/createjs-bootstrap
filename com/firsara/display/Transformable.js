@@ -15,28 +15,40 @@ com.firsara.display.Transformable = (function(){
   var STACK = 5;
   var START = 'start';
   var UPDATE = 'update';
-  // TODO: change complete event to something else which pops more!
   var COMPLETE = 'complete';
 
   var Transformable = function(){
     // reference to instance
     var self = this;
 
+    // frictions:
+    // move: how much finger movements transform
+    // release: how much fade-out tweening after releasing fingers transform
+    self.friction = {base: 1, move: {}, release: {}};
+
+    // numeric value to snap transformation by x
+    self.snap = {};
+
+    // freely transformable by property, overwrites borders if true
+    self.free = {};
+
     // borders for specific values get stored here
     self.borders = {};
-    // lock movement regardless of other values
+
+    // lock transformations regardless of other values
     self.lock = false;
 
+
+    // protected values
     // NOTE: read-only, don't modify from outside!
     // currently active fingers
-    self.activeFingers = 0;
+    self._activeFingers = 0;
+
     // finger positions
-    self.fingers = [];
+    self._fingers = [];
+
     // stored movements, updated on every tick
-    self.stack = [];
-    // TODO: rename child values
-    // lower / higher movement through frictions
-    self.friction = {move: 1, release: 1};
+    self._stack = [];
 
     var _changed = false;
 
@@ -54,7 +66,7 @@ com.firsara.display.Transformable = (function(){
     var _mousedown = function(event){
       if (! event.pointerID) event.pointerID = -1;
 
-      self.fingers[event.pointerID] = {
+      self._fingers[event.pointerID] = {
         start: {x: event.stageX, y: event.stageY},
         current: {x: event.stageX, y: event.stageY},
         old: {x: event.stageX, y: event.stageY}
@@ -66,8 +78,8 @@ com.firsara.display.Transformable = (function(){
     var _pressmove = function(event){
       if (! event.pointerID) event.pointerID = -1;
 
-      self.fingers[event.pointerID].current.x = event.stageX;
-      self.fingers[event.pointerID].current.y = event.stageY;
+      self._fingers[event.pointerID].current.x = event.stageX;
+      self._fingers[event.pointerID].current.y = event.stageY;
 
       _calculateActiveFingers();
 
@@ -76,12 +88,13 @@ com.firsara.display.Transformable = (function(){
 
     var _enterFrame = function(){
       if (_changed) {
+        _changed = false;
         self.dispatchEvent(UPDATE);
 
-        for (var pointerID in self.fingers) {
-          if (self.fingers[pointerID].start) {
-            self.fingers[pointerID].old.x = self.fingers[pointerID].current.x;
-            self.fingers[pointerID].old.y = self.fingers[pointerID].current.y;
+        for (var pointerID in self._fingers) {
+          if (self._fingers[pointerID].start) {
+            self._fingers[pointerID].old.x = self._fingers[pointerID].current.x;
+            self._fingers[pointerID].old.y = self._fingers[pointerID].current.y;
           }
         }
       }
@@ -94,15 +107,15 @@ com.firsara.display.Transformable = (function(){
       stack.rotation = self.rotation;
 
       // auto-stack container-properties regardless of use in subclasses
-      if (self.stack.length > STACK) self.stack.shift();
-      self.stack.push(stack);
+      if (self._stack.length > STACK) self._stack.shift();
+      self._stack.push(stack);
     };
 
     var _pressup = function(event){
       if (! event.pointerID) event.pointerID = -1;
 
-      if (self.fingers[event.pointerID]) {
-        delete(self.fingers[event.pointerID]);
+      if (self._fingers[event.pointerID]) {
+        delete(self._fingers[event.pointerID]);
       }
 
       _calculateActiveFingers();
@@ -112,11 +125,11 @@ com.firsara.display.Transformable = (function(){
 
 
     var _calculateActiveFingers = function(){
-      self.activeFingers = 0;
+      self._activeFingers = 0;
 
-      for (var pointerID in self.fingers) {
-        if (self.fingers[pointerID].start) {
-          self.activeFingers++;
+      for (var pointerID in self._fingers) {
+        if (self._fingers[pointerID].start) {
+          self._activeFingers++;
         }
       }
     };
