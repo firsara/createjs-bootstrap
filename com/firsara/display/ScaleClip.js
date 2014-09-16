@@ -1,7 +1,3 @@
-// TODO: create SwipeClip.
-// TODO: rename TransformClip to Transformable
-// TODO: create SlideClip
-// TODO: adjust borders to take rotation and scaling in account
 setPackage('com.firsara.display');
 
 com.firsara.display.ScaleClip = (function(){
@@ -23,6 +19,8 @@ com.firsara.display.ScaleClip = (function(){
       if (Parent && ! self.borders) Parent.call(self);
 
       self.borders.scale = [];
+      self.friction.move.scale = 1;
+      self.friction.release.scale = 1;
 
       self.addEventListener('start', _startTransform);
       self.addEventListener('update', _update);
@@ -30,7 +28,7 @@ com.firsara.display.ScaleClip = (function(){
     };
 
     var _holdBorders = function(){
-      if (! self.free) {
+      if (! self.free.scale) {
         if      (self.scaleX < self.borders.scale[0]) { self.scaleX = self.borders.scale[0]; self.scaleY = self.borders.scale[0]; }
         else if (self.scaleX > self.borders.scale[1]) { self.scaleX = self.borders.scale[1]; self.scaleY = self.borders.scale[1]; }
       }
@@ -54,12 +52,12 @@ com.firsara.display.ScaleClip = (function(){
     };
 
     var _startTransform = function(event){
-      if (self.activeFingers > 1) {
+      if (self._activeFingers > 1) {
         _stopTween();
       }
     };
 
-    var _dispatchRotationComplete = function(){
+    var _dispatchScaleComplete = function(){
       self.dispatchEvent(SCALE_COMPLETE);
     };
 
@@ -73,22 +71,21 @@ com.firsara.display.ScaleClip = (function(){
     var _update = function(event){
       if (self.lock) return;
 
-      if (self.activeFingers > 1) {
+      if (self._activeFingers > 1) {
         _stopTween();
 
         var points = [];
 
-        for (var k in self.fingers) {
-          if (self.fingers[k].current) {
-            points.push(self.fingers[k]);
+        for (var k in self._fingers) {
+          if (self._fingers[k].current) {
+            points.push(self._fingers[k]);
             if (points.length >= 2) break;
           }
         }
 
         var scale = _getDistance(points[0].current, points[1].current) / _getDistance(points[0].old, points[1].old);
 
-        // NOTE: make scaling proportional to element size
-        self.scaleX += (scale - 1);
+        self.scaleX += ((scale - 1) * self.friction.move.rotation * self.friction.base);
         self.scaleY = self.scaleX;
 
         _holdBorders();
@@ -100,35 +97,40 @@ com.firsara.display.ScaleClip = (function(){
     var _stopTransform = function(){
       if (self.lock) return;
 
-      if (self.stack.length == 0 || typeof TweenLite === 'undefined') {
-        _dispatchRotationComplete();
+      if (self._stack.length == 0 || typeof TweenLite === 'undefined') {
+        _dispatchScaleComplete();
       } else if (! (typeof TweenLite === 'undefined')) {
         var options = {};
         var average = {scaleX: 0, scaleY: 0};
         var newPosition = {scaleX: 0, scaleY: 0};
 
-        for (var i = 1, _len = self.stack.length; i < _len; i++) {
-          average.scaleX += (self.stack[i].scaleX - self.stack[i-1].scaleX);
-          average.scaleY += (self.stack[i].scaleY - self.stack[i-1].scaleY);
+        for (var i = 1, _len = self._stack.length; i < _len; i++) {
+          average.scaleX += (self._stack[i].scaleX - self._stack[i-1].scaleX);
+          average.scaleY += (self._stack[i].scaleY - self._stack[i-1].scaleY);
         }
 
-        average.scaleX = average.scaleX / self.stack.length;
-        average.scaleY = average.scaleY / self.stack.length;
+        average.scaleX = average.scaleX / self._stack.length;
+        average.scaleY = average.scaleY / self._stack.length;
 
-        var speed = 0.6 + .01 * Math.abs((average.scaleX + average.scaleY) / 2) * 2 * (self.friction.release + self.friction.release) / 4;
-        options.scaleX = self.scaleX + average.scaleX * Math.max(10, Math.abs(average.scaleX / 10)) * self.friction.release / 2;
-        options.scaleY = self.scaleY + average.scaleY * Math.max(10, Math.abs(average.scaleY / 10)) * self.friction.release / 2;
+        var fade = 10;
 
-        if (self.snap && self.snap != 0) {
-          options.scaleX = (Math.round(options.y / self.snap) * self.snap);
-          options.scaleY = (Math.round(options.y / self.snap) * self.snap);
+        var speed = 1 * self.friction.release.scale * self.friction.base;
+
+        options.scaleX = self.scaleX + average.scaleX * self.friction.release.scale * self.friction.base * fade;
+        options.scaleY = self.scaleY + average.scaleY * self.friction.release.scale * self.friction.base * fade;
+
+        if (self.snap.scale && self.snap.scale != 0) {
+          options.scaleX = (Math.round(options.scaleX / self.snap.scale) * self.snap.scale);
+          options.scaleY = (Math.round(options.scaleY / self.snap.scale) * self.snap.scale);
         }
 
-        // TODO:
-        // check for borders!
+        if (! self.free.scale) {
+          if      (options.scaleX < self.borders.scale[0]) { options.scaleX = self.borders.scale[0]; options.scaleY = self.borders.scale[0]; }
+          else if (options.scaleX > self.borders.scale[1]) { options.scaleX = self.borders.scale[1]; options.scaleY = self.borders.scale[1]; }
+        }
 
         options.ease = Cubic.easeOut;
-        options.onComplete = _dispatchRotationComplete;
+        options.onComplete = _dispatchScaleComplete;
         options.onUpdate = _dispatchTweenUpdate;
         options.overwrite = 'auto';
 

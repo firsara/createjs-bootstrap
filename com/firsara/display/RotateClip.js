@@ -1,4 +1,3 @@
-// TODO: adjust borders to take rotation and scaling in account
 setPackage('com.firsara.display');
 
 com.firsara.display.RotateClip = (function(){
@@ -20,6 +19,8 @@ com.firsara.display.RotateClip = (function(){
       if (Parent && ! self.borders) Parent.call(self);
 
       self.borders.rotation = [];
+      self.friction.move.rotation = 1;
+      self.friction.release.rotation = 1;
 
       self.addEventListener('start', _startTransform);
       self.addEventListener('update', _update);
@@ -27,7 +28,7 @@ com.firsara.display.RotateClip = (function(){
     };
 
     var _holdBorders = function(){
-      if (! self.free) {
+      if (! self.free.rotation) {
         if      (self.rotation < self.borders.rotation[0]) self.rotation = self.borders.rotation[0];
         else if (self.rotation > self.borders.rotation[1]) self.rotation = self.borders.rotation[1];
       }
@@ -51,7 +52,7 @@ com.firsara.display.RotateClip = (function(){
     };
 
     var _startTransform = function(event){
-      if (self.activeFingers > 1) {
+      if (self._activeFingers > 1) {
         _stopTween();
       }
     };
@@ -63,14 +64,14 @@ com.firsara.display.RotateClip = (function(){
     var _update = function(event){
       if (self.lock) return;
 
-      if (self.activeFingers > 1) {
+      if (self._activeFingers > 1) {
         _stopTween();
 
         var points = [];
 
-        for (var k in self.fingers) {
-          if (self.fingers[k].current) {
-            points.push(self.fingers[k]);
+        for (var k in self._fingers) {
+          if (self._fingers[k].current) {
+            points.push(self._fingers[k]);
             if (points.length >= 2) break;
           }
         }
@@ -83,7 +84,7 @@ com.firsara.display.RotateClip = (function(){
         var point2 = points[1].current;
         var currentAngle = Math.atan2((point1.y-point2.y),(point1.x-point2.x))*(180/Math.PI);
 
-        self.rotation += (currentAngle - startAngle);
+        self.rotation += ((currentAngle - startAngle) * self.friction.move.rotation * self.friction.base);
 
         _holdBorders();
 
@@ -94,28 +95,33 @@ com.firsara.display.RotateClip = (function(){
     var _stopTransform = function(){
       if (self.lock) return;
 
-      if (self.stack.length == 0 || typeof TweenLite === 'undefined') {
+      if (self._stack.length == 0 || typeof TweenLite === 'undefined') {
         _dispatchRotationComplete();
       } else if (! (typeof TweenLite === 'undefined')) {
         var options = {};
         var average = {rotation: 0};
         var newPosition = {rotation: 0};
 
-        for (var i = 1, _len = self.stack.length; i < _len; i++) {
-          average.rotation += (self.stack[i].rotation - self.stack[i-1].rotation);
+        for (var i = 1, _len = self._stack.length; i < _len; i++) {
+          average.rotation += (self._stack[i].rotation - self._stack[i-1].rotation);
         }
 
-        average.rotation = average.rotation / self.stack.length;
+        average.rotation = average.rotation / self._stack.length;
 
-        var speed = 0.6 + .01 * Math.abs(average.rotation) * 2 * (self.friction.release + self.friction.release) / 4;
-        options.rotation = self.rotation + average.rotation * Math.max(10, Math.abs(average.rotation / 10)) * self.friction.release / 2;
+        var fade = 10;
 
-        if (self.snap && self.snap != 0) {
-          options.rotation = (Math.round(options.y / self.snap) * self.snap);
+        var speed = 1 * self.friction.release.rotation * self.friction.base;
+
+        options.rotation = self.rotation + average.rotation * self.friction.release.rotation * self.friction.base * fade;
+
+        if (self.snap.rotation && self.snap.rotation != 0) {
+          options.rotation = (Math.round(options.y / self.snap.rotation) * self.snap.rotation);
         }
 
-        // TODO:
-        // check for borders!
+        if (! self.free.rotation) {
+          if      (options.rotation < self.borders.rotation[0]) options.rotation = self.borders.rotation[0];
+          else if (options.rotation > self.borders.rotation[1]) options.rotation = self.borders.rotation[1];
+        }
 
         options.ease = Cubic.easeOut;
         options.onComplete = _dispatchRotationComplete;
