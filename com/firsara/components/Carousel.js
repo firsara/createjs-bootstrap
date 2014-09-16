@@ -8,22 +8,20 @@ NOTE: create moveclip underneath, paint onto moveclip to make use of mouse-event
 
 TODO: create module base class and template base class
 TODO: create component base class and inherit from it!
+
+TODO: make it either vertical OR horizontal
+TODO: stack movement every frame and tween by that average value
+
+TODO: new functions: getId(), setId(), removeAt(index), remove(element), insertAt(element, index)
  */
 
 setPackage('com.firsara.components');
 
 com.firsara.components.Carousel = (function(){
-  var Parent = com.firsara.display.Container3d;
+  var Parent = createjs.Container;
 
   var Public = {};
 
-  // TODO: make as variables, not constants
-  var BLUR = false;
-  var BLUR_INTENSITY = 15;
-  var SHADOW_INTENSITY = 12;
-  var BLUR_QUALITY = 1;
-  var SHADOW_QUALITY = 3;
-  var RADIAN_MULTIPLY = Math.PI / 180;
   var HIDE_PERCENTAGE = .2;
 
   function sortByKey(array, key) {
@@ -37,12 +35,16 @@ com.firsara.components.Carousel = (function(){
     // instance
     var self = this;
 
-    // NOTE: debug. set stage via initializer paramter, template or anything similar
     // NOTE: create invisible CACHED background that uses events rather than stage
     // NOTE: create public API setWidth; setHeight and resize() to define size
-    var _stage = Main.stage;
 
     self.elements = [];
+
+    self.container = new createjs.Container3d();
+    var _background = new createjs.Container();
+
+    var _containerWidth = 0;
+    var _containerHeight = 0;
 
     var _offset = {x: 0, y: 0};
     var _oldPosition = {};
@@ -54,49 +56,106 @@ com.firsara.components.Carousel = (function(){
     var _sorting = null;
     var _element = null;
     var _degree = null;
+    var _snap = 0;
+
+    var _tween = null;
 
     // constructor
     var Init = function(){
       // call super constructor
       if (Parent) Parent.call(self);
 
-      self.x = Main.stage.canvas.width / 2;
-      self.y = Main.stage.canvas.height / 2;
+      self.addChild(_background);
+      self.addChild(self.container);
+
+      self.addEventListener('addedToStage', _render);
+      self.addEventListener('removedFromStage', _dispose);
+    };
+
+    self.add = function(element){
+      self.elements.push(element);
+      self.render();
     };
 
     self.render = function(){
-      // NOTE: dispose!!!!
-      _stage.addEventListener('stagemousedown', _startDrag);
+      if (self.elements.length == 0) return;
 
       _count = self.elements.length;
       _degreeStep = (Math.PI * 2) / _count;
+      _snap = _degreeStep * _containerWidth / _degreeStep / 3;
+
+      while (self.container.getNumChildren() > 0) self.container.removeChildAt(0);
 
       for (var i = 0; i < _count; i++) {
         var element = self.elements[i];
-        element.width = 267;
-        element.height = 200;
-        element.y = element.height * -.5;
-        if (BLUR) {
-          element.cache(0, 0, element.width, element.height);
-        }
-
-        self.addChild(self.elements[i]);
+        self.container.addChild(self.elements[i]);
       }
 
       _rearrange();
     };
 
+    self.resize = function(width, height){
+      _containerWidth = width;
+      _containerHeight = height;
+
+      self.container.perspectiveProjection.projectionCenter.x = _containerWidth / 2;
+      self.container.perspectiveProjection.projectionCenter.y = _containerHeight / 2;
+
+      while (_background.getNumChildren() > 0) _background.removeChildAt(0);
+
+      var fill = new createjs.Shape();
+      fill.graphics.beginFill('#F00');
+      fill.alpha = 0;
+      fill.graphics.drawRect(0, 0, _containerWidth, _containerHeight);
+      fill.graphics.endFill();
+
+      _background.addChild(fill);
+      _background.cache(0, 0, _containerWidth, _containerHeight);
+      fill.alpha = 1;
+
+      self.render();
+    };
+
+    var _render = function(){
+      self.addEventListener('mousedown', _startDrag);
+      self.render();
+    };
+
+    var _dispose = function(){
+      self.removeEventListener('mousedown', _startDrag);
+      self.stage.removeEventListener('stagemouseup', _stopDrag);
+      self.stage.removeEventListener('stagemousemove', _drag);
+    };
+
     var _startDrag = function(event){
+      if (_tween) {
+        _tween.kill();
+        _tween = null;
+      }
+
+      _offset.startX = _offset.x;
+      _offset.startY = _offset.y;
+
       _oldPosition.x = event.stageX;
       _oldPosition.y = event.stageY;
 
-      _stage.addEventListener('stagemouseup', _stopDrag);
-      _stage.addEventListener('stagemousemove', _drag);
+      self.stage.addEventListener('stagemouseup', _stopDrag);
+      self.stage.addEventListener('stagemousemove', _drag);
     };
 
     var _stopDrag = function(event){
-      _stage.removeEventListener('stagemouseup', _stopDrag);
-      _stage.removeEventListener('stagemousemove', _drag);
+      self.stage.removeEventListener('stagemouseup', _stopDrag);
+      self.stage.removeEventListener('stagemousemove', _drag);
+
+      // calculate movement
+      var speed = 1;
+
+      var options = {};
+      options.x = _offset.x + (_offset.x - _offset.startX) * 3;
+      options.x = (Math.round(options.x / _snap) * _snap);
+      options.onUpdate = _rearrange;
+
+      _tween = TweenLite.to(_offset, speed, options);
     };
 
     var _drag = function(event){
@@ -112,8 +171,7 @@ com.firsara.components.Carousel = (function(){
     };
 
     var _rearrange = function(){
-      // NOTE: remove 1000 and use canvas width instead
-      var offset = _offset.x / (1000 * _moveFriction);
+      var offset = _offset.x / _containerWidth * _degreeStep * 3;
 
       _sorting = [];
 
@@ -122,8 +180,9 @@ com.firsara.components.Carousel = (function(){
 
         _degree = _degreeStep * _i + offset;
 
-        _element.x = Math.sin(_degree) * _stage.canvas.width - _element.width * .5;
-        _element.z = 0 - Math.cos(_degree) * _stage.canvas.width + _stage.canvas.width;
+        _element.x = Math.sin(_degree) * _containerWidth + _containerWidth / 2;
+        _element.y = _containerHeight / 2;
+        _element.z = 0 - Math.cos(_degree) * _containerWidth + _containerWidth;
         _sorting.push(_element);
       }
 
@@ -135,16 +194,10 @@ com.firsara.components.Carousel = (function(){
 
         _element.alpha = 1 / (_count - _i) + .5;
 
-        if (_i > Math.floor(_count*HIDE_PERCENTAGE)) _element.visible = true;
+        if (_i > Math.floor(_count * HIDE_PERCENTAGE)) _element.visible = true;
         else _element.visible = false;
 
-        if (BLUR) {
-          _element.filters = [new createjs.BlurFilter((_count - 1 - _i) * BLUR_INTENSITY, (_count - 1 - _i) * BLUR_INTENSITY, BLUR_QUALITY)];
-          //element.filters = [new BlurFilter((_count - 1 - _i) * BLUR_INTENSITY, (_count - 1 - _i) * BLUR_INTENSITY, BLUR_QUALITY), new DropShadowFilter(0, 0, 0, 1, (_count - _i) * SHADOW_INTENSITY, (_count - _i) * SHADOW_INTENSITY, .6, SHADOW_QUALITY)];
-          _element.updateCache();
-        }
-
-        self.setChildIndex(_sorting[_i], _i);
+        self.container.setChildIndex(_sorting[_i], _i);
       }
     }
 
