@@ -80,12 +80,12 @@ com.firsara.display.RotateClip = (function(){
         // calculate initial angle
         var point1 = points[0].old;
         var point2 = points[1].old;
-        var startAngle = Math.atan2((point1.y-point2.y),(point1.x-point2.x))*(180/Math.PI);
+        var startAngle = Math.atan2((point1.y - point2.y), (point1.x - point2.x)) * (180/Math.PI);
 
         // calculate new angle
         var point1 = points[0].current;
         var point2 = points[1].current;
-        var currentAngle = Math.atan2((point1.y-point2.y),(point1.x-point2.x))*(180/Math.PI);
+        var currentAngle = Math.atan2((point1.y - point2.y), (point1.x - point2.x)) * (180/Math.PI);
 
         // set rotation based on difference between the two angles
         self.rotation += ((currentAngle - startAngle) * self.fraction.move.rotation * self.fraction.base);
