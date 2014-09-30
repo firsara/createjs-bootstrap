@@ -72,6 +72,8 @@ com.firsara.display.Transformable = (function(){
         old: {x: event.stageX, y: event.stageY}
       };
 
+      _calculateActiveFingers();
+
       self.dispatchEvent(START);
     };
 
