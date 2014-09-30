@@ -123,6 +123,7 @@ com.firsara.display.MoveClip = (function(){
     var _update = function(event){
       if (self.lock) return;
 
+      // caluclate average movement between all points
       var average = {x: 0, y: 0};
 
       for (var pointerID in self._fingers) {
