@@ -63,6 +63,7 @@ com.firsara.display.Transformable = (function(){
       self.addEventListener('tick', _enterFrame);
     };
 
+    // store initial touchpoint-position
     var _mousedown = function(event){
       if (! event.pointerID) event.pointerID = -1;
 
@@ -77,6 +78,7 @@ com.firsara.display.Transformable = (function(){
       self.dispatchEvent(START);
     };
 
+    // update touchpoint-positions
     var _pressmove = function(event){
       if (! event.pointerID) event.pointerID = -1;
 
@@ -88,6 +90,8 @@ com.firsara.display.Transformable = (function(){
       _changed = true;
     };
 
+    // if positions changed (through pressmove): dispatch update-event for later usage and keep track of old point-position
+    // dispatch updates only on tick to save some performance
     var _enterFrame = function(){
       if (_changed) {
         _changed = false;
@@ -113,6 +117,7 @@ com.firsara.display.Transformable = (function(){
       self._stack.push(stack);
     };
 
+    // delete old and unused finger-positions
     var _pressup = function(event){
       if (! event.pointerID) event.pointerID = -1;
 
@@ -125,7 +130,7 @@ com.firsara.display.Transformable = (function(){
       self.dispatchEvent(COMPLETE);
     };
 
-
+    // calculates currently active fingers, can be used later in subclasses
     var _calculateActiveFingers = function(){
       self._activeFingers = 0;
 
