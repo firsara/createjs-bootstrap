@@ -30,7 +30,7 @@ com.firsara.display.MoveClip = (function(){
     // constructor
     var Init = function(){
       // call super constructor, only if instance is not a mixin of another class
-      if (Parent && ! self.borders) Parent.call(self);
+      if (Parent && ! self._initialized) Parent.call(self);
 
       self.borders.x = [];
       self.borders.y = [];

@@ -57,6 +57,8 @@ com.firsara.display.Transformable = (function(){
       // call super constructor
       if (Parent) Parent.call(self);
 
+      self._initialized = true;
+
       self.addEventListener('mousedown', _mousedown);
       self.addEventListener('pressmove', _pressmove);
       self.addEventListener('pressup', _pressup);

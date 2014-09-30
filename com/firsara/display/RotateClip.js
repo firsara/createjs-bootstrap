@@ -16,7 +16,7 @@ com.firsara.display.RotateClip = (function(){
     // constructor
     var Init = function(){
       // call super constructor, only if instance is not a mixin of another class
-      if (Parent && ! self.borders) Parent.call(self);
+      if (Parent && ! self._initialized) Parent.call(self);
 
       self.borders.rotation = [];
       self.fraction.move.rotation = 1;
@@ -69,6 +69,7 @@ com.firsara.display.RotateClip = (function(){
 
         var points = [];
 
+        // extract touchpoints
         for (var k in self._fingers) {
           if (self._fingers[k].current) {
             points.push(self._fingers[k]);
@@ -76,14 +77,17 @@ com.firsara.display.RotateClip = (function(){
           }
         }
 
+        // calculate initial angle
         var point1 = points[0].old;
         var point2 = points[1].old;
         var startAngle = Math.atan2((point1.y-point2.y),(point1.x-point2.x))*(180/Math.PI);
 
+        // calculate new angle
         var point1 = points[0].current;
         var point2 = points[1].current;
         var currentAngle = Math.atan2((point1.y-point2.y),(point1.x-point2.x))*(180/Math.PI);
 
+        // set rotation based on difference between the two angles
         self.rotation += ((currentAngle - startAngle) * self.fraction.move.rotation * self.fraction.base);
 
         _holdBorders();
