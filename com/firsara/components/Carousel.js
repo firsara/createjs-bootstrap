@@ -48,7 +48,7 @@ com.firsara.components.Carousel = (function(){
 
     var _offset = {x: 0, y: 0};
     var _oldPosition = {};
-    var _moveFriction = 1;
+    var _moveFraction = 1;
     var _degreeStep = 0;
 
     var _i = 0;

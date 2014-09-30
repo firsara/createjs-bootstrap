@@ -19,8 +19,8 @@ com.firsara.display.ScaleClip = (function(){
       if (Parent && ! self.borders) Parent.call(self);
 
       self.borders.scale = [];
-      self.friction.move.scale = 1;
-      self.friction.release.scale = 1;
+      self.fraction.move.scale = 1;
+      self.fraction.release.scale = 1;
 
       self.addEventListener('start', _startTransform);
       self.addEventListener('update', _update);
@@ -85,7 +85,7 @@ com.firsara.display.ScaleClip = (function(){
 
         var scale = _getDistance(points[0].current, points[1].current) / _getDistance(points[0].old, points[1].old);
 
-        self.scaleX += ((scale - 1) * self.friction.move.rotation * self.friction.base);
+        self.scaleX += ((scale - 1) * self.fraction.move.rotation * self.fraction.base);
         self.scaleY = self.scaleX;
 
         _holdBorders();
@@ -114,10 +114,10 @@ com.firsara.display.ScaleClip = (function(){
 
         var fade = 10;
 
-        var speed = 1 * self.friction.release.scale * self.friction.base;
+        var speed = 1 * self.fraction.release.scale * self.fraction.base;
 
-        options.scaleX = self.scaleX + average.scaleX * self.friction.release.scale * self.friction.base * fade;
-        options.scaleY = self.scaleY + average.scaleY * self.friction.release.scale * self.friction.base * fade;
+        options.scaleX = self.scaleX + average.scaleX * self.fraction.release.scale * self.fraction.base * fade;
+        options.scaleY = self.scaleY + average.scaleY * self.fraction.release.scale * self.fraction.base * fade;
 
         if (self.snap.scale && self.snap.scale != 0) {
           options.scaleX = (Math.round(options.scaleX / self.snap.scale) * self.snap.scale);

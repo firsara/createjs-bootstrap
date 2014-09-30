@@ -19,8 +19,8 @@ com.firsara.display.RotateClip = (function(){
       if (Parent && ! self.borders) Parent.call(self);
 
       self.borders.rotation = [];
-      self.friction.move.rotation = 1;
-      self.friction.release.rotation = 1;
+      self.fraction.move.rotation = 1;
+      self.fraction.release.rotation = 1;
 
       self.addEventListener('start', _startTransform);
       self.addEventListener('update', _update);
@@ -84,7 +84,7 @@ com.firsara.display.RotateClip = (function(){
         var point2 = points[1].current;
         var currentAngle = Math.atan2((point1.y-point2.y),(point1.x-point2.x))*(180/Math.PI);
 
-        self.rotation += ((currentAngle - startAngle) * self.friction.move.rotation * self.friction.base);
+        self.rotation += ((currentAngle - startAngle) * self.fraction.move.rotation * self.fraction.base);
 
         _holdBorders();
 
@@ -110,9 +110,9 @@ com.firsara.display.RotateClip = (function(){
 
         var fade = 10;
 
-        var speed = 1 * self.friction.release.rotation * self.friction.base;
+        var speed = 1 * self.fraction.release.rotation * self.fraction.base;
 
-        options.rotation = self.rotation + average.rotation * self.friction.release.rotation * self.friction.base * fade;
+        options.rotation = self.rotation + average.rotation * self.fraction.release.rotation * self.fraction.base * fade;
 
         if (self.snap.rotation && self.snap.rotation != 0) {
           options.rotation = (Math.round(options.y / self.snap.rotation) * self.snap.rotation);

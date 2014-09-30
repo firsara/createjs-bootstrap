@@ -21,10 +21,10 @@ com.firsara.display.Transformable = (function(){
     // reference to instance
     var self = this;
 
-    // frictions:
+    // fractions:
     // move: how much finger movements transform
     // release: how much fade-out tweening after releasing fingers transform
-    self.friction = {base: 1, move: {}, release: {}};
+    self.fraction = {base: 1, move: {}, release: {}};
 
     // numeric value to snap transformation by x
     self.snap = {};

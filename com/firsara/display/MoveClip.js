@@ -35,11 +35,11 @@ com.firsara.display.MoveClip = (function(){
       self.borders.x = [];
       self.borders.y = [];
 
-      self.friction.move.x = 1;
-      self.friction.move.y = 1;
+      self.fraction.move.x = 1;
+      self.fraction.move.y = 1;
 
-      self.friction.release.x = 1;
-      self.friction.release.y = 1;
+      self.fraction.release.x = 1;
+      self.fraction.release.y = 1;
 
       self.addEventListener('start', _startTransform);
       self.addEventListener('update', _update);
@@ -49,7 +49,7 @@ com.firsara.display.MoveClip = (function(){
     self.moveTo = function(x, y, ease){
       if (! (typeof TweenLite === 'undefined')) {
         var options = {};
-        var speed = 0.45 + .01 * ((self.friction.release.x + self.friction.release.y) / 2) * self.friction.base;
+        var speed = 0.45 + .01 * ((self.fraction.release.x + self.fraction.release.y) / 2) * self.fraction.base;
 
         if (! isNaN(x)) options.x = x;
         if (! isNaN(y)) options.y = y;
@@ -135,8 +135,8 @@ com.firsara.display.MoveClip = (function(){
       average.x /= Math.max(1, self._activeFingers);
       average.y /= Math.max(1, self._activeFingers);
 
-      self.x += (average.x * self.friction.move.x * self.friction.base);
-      self.y += (average.y * self.friction.move.y * self.friction.base);
+      self.x += (average.x * self.fraction.move.x * self.fraction.base);
+      self.y += (average.y * self.fraction.move.y * self.fraction.base);
 
       _holdBorders();
 
@@ -163,10 +163,10 @@ com.firsara.display.MoveClip = (function(){
 
         var fade = 10;
 
-        var speed = 1 * ((self.friction.release.x + self.friction.release.y) / 2) * self.friction.base;
+        var speed = 1 * ((self.fraction.release.x + self.fraction.release.y) / 2) * self.fraction.base;
 
-        options.x = self.x + average.x * self.friction.release.x * self.friction.base * fade;
-        options.y = self.y + average.y * self.friction.release.y * self.friction.base * fade;
+        options.x = self.x + average.x * self.fraction.release.x * self.fraction.base * fade;
+        options.y = self.y + average.y * self.fraction.release.y * self.fraction.base * fade;
 
         if (self.snap.x && self.snap.x != 0) {
           options.x = (Math.round(options.x / self.snap) * self.snap);
